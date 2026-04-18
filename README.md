@@ -4,46 +4,48 @@ A VS Code extension that auto-completes React `useState` destructuring so you do
 
 ## What it does
 
-Type `const [count,` in any JS/TS/JSX/TSX file and the extension suggests:
+Type `const [count,` in any JS/TS/JSX/TSX file and the extension suggests the rest:
 
-```ts
-const [count, setCount] = React.useState()
-//                                        ^ cursor lands here
+**Before:**
+```tsx
+const [count,
 ```
 
-Accept the suggestion, type your initial value, done. No more manually typing the setter name or the hook call.
+**After accepting the suggestion:**
+```tsx
+const [count, setCount] = useState()
+//                                ^ cursor lands here
+```
+
+The extension reads your file's existing React import and matches the style automatically — no configuration needed.
+
+| Import in file | Inserted |
+|---|---|
+| `import { useState } from 'react'` | `useState()` |
+| `import React from 'react'` | `React.useState()` |
+| `import * as React from 'react'` | `React.useState()` |
+| `import React, { useState } from 'react'` | `useState()` |
+| No React import | Adds `import { useState } from 'react'` then uses `useState()` |
+
+To switch styles, just change your import — the extension follows your lead.
 
 ## Usage
 
 1. Open any `.js`, `.ts`, `.jsx`, or `.tsx` file
-2. Start a useState destructure: `const [myValue,`
+2. Start typing a `useState` destructure: `const [myValue,`
 3. Accept the **Why Type Twice** completion suggestion
-4. Type the initial state value inside the parens
+4. Type your initial state value inside the parens
 
-## Settings
-
-| Setting | Options | Default | Description |
-|---|---|---|---|
-| `usestateSetter.importStyle` | `React.useState` \| `useState` | `React.useState` | Controls the hook call style in the inserted snippet |
-
-**`React.useState`** — use this if your file imports React as a default import:
-```ts
-import React from 'react';
-```
-
-**`useState`** — use this if your file uses named imports:
-```ts
-import { useState } from 'react';
-```
-
-## Development
+## Local development
 
 ```bash
+git clone https://github.com/brandmch/WhyTypeTwice.git
+cd WhyTypeTwice
 npm install
 npm run compile
 ```
 
-Press `F5` in VS Code to launch the extension in a new Extension Development Host window.
+Open the folder in VS Code and press `F5`. A second **Extension Development Host** window opens with the extension loaded and ready to test.
 
 ## License
 

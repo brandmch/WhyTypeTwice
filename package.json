@@ -1,9 +1,19 @@
 {
   "name": "why-type-twice",
   "displayName": "Why Type Twice",
-  "description": "Auto-completes React useState destructuring: type `const [value,` and get the setter and hook inserted automatically, matching your file's import style.",
+  "description": "Auto-completes React useState destructuring. Type const [value, and get setVarName] = useState() with your cursor inside the parens.",
   "version": "0.0.1",
   "publisher": "brandmch",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brandmch/WhyTypeTwice.git"
+  },
+  "homepage": "https://github.com/brandmch/WhyTypeTwice",
+  "bugs": {
+    "url": "https://github.com/brandmch/WhyTypeTwice/issues"
+  },
+  "keywords": ["react", "useState", "snippet", "autocomplete", "hooks"],
   "engines": {
     "vscode": "^1.85.0"
   },
