@@ -20,7 +20,7 @@ function analyzeImports(document: vscode.TextDocument): ImportAnalysis {
   const raw = document.getText();
   const text = stripComments(raw);
 
-  // [\/s\/S]+? handles multi-line import clauses; (?!type[\s{]) skips `import type`
+  // [\s\S]+? handles multi-line import clauses; (?!type[\s{]) skips `import type`
   const reactImportRE = /import\s+(?!type[\s{])([\s\S]+?)\s+from\s+['"]react['"]/g;
 
   let hasNamedUseState = false;
@@ -111,9 +111,9 @@ export function activate(context: vscode.ExtensionContext) {
           callExpr = importStyle === 'useState' ? 'useState' : 'React.useState';
         }
 
-        const snippetText = `${setterName}] = ${callExpr}(\${1:})`;
+        const snippetText = ` ${setterName}] = ${callExpr}(\${1:})`;
         const item = new vscode.CompletionItem(
-          `${setterName}] = ${callExpr}()`,
+          ` ${setterName}] = ${callExpr}()`,
           vscode.CompletionItemKind.Snippet
         );
         item.insertText = new vscode.SnippetString(snippetText);
