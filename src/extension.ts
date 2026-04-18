@@ -41,9 +41,17 @@ export function activate(context: vscode.ExtensionContext) {
         item.documentation = new vscode.MarkdownString(
           `Completes the useState destructure:\n\`\`\`\nconst [${stateName}, ${setterName}] = ${callExpr}()\n\`\`\``
         );
-        // High sort priority so it floats to the top
         item.sortText = '0';
         item.preselect = true;
+
+        // If VS Code auto-closed the bracket, the char after the cursor is already `]`.
+        // Extend the replacement range to consume it so we don't end up with `]]`.
+        const charAfterCursor = document.getText(
+          new vscode.Range(position, position.translate(0, 1))
+        );
+        if (charAfterCursor === ']') {
+          item.range = new vscode.Range(position, position.translate(0, 1));
+        }
 
         return [item];
       },
