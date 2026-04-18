@@ -21,13 +21,14 @@
       "properties": {
         "usestateSetter.importStyle": {
           "type": "string",
-          "default": "React.useState",
-          "enum": ["React.useState", "useState"],
+          "default": "autoDetect",
+          "enum": ["autoDetect", "React.useState", "useState"],
           "enumDescriptions": [
-            "Use React.useState() — assumes `import React from 'react'`",
-            "Use useState() — assumes `import { useState } from 'react'`"
+            "Read the current file's imports and use the matching style; auto-adds `import { useState } from 'react'` if no React import is found",
+            "Always use React.useState() — assumes `import React from 'react'`",
+            "Always use useState() — assumes `import { useState } from 'react'`"
           ],
-          "description": "Controls whether the auto-inserted call uses React.useState() or useState()."
+          "description": "Controls the hook call style inserted by the completion. 'autoDetect' (default) reads the file's imports."
         }
       }
     }
