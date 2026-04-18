@@ -1,14 +1,49 @@
-# WhyTypeTwice
+# Why Type Twice
 
-A project to reduce repetitive typing.
+A VS Code extension that auto-completes React `useState` destructuring so you don't have to.
 
-## Getting Started
+## What it does
 
-Clone the repository and follow the setup instructions as the project develops.
+Type `const [count,` in any JS/TS/JSX/TSX file and the extension suggests:
 
-## Contributing
+```ts
+const [count, setCount] = React.useState()
+//                                        ^ cursor lands here
+```
 
-Pull requests are welcome. Please open an issue first to discuss any major changes.
+Accept the suggestion, type your initial value, done. No more manually typing the setter name or the hook call.
+
+## Usage
+
+1. Open any `.js`, `.ts`, `.jsx`, or `.tsx` file
+2. Start a useState destructure: `const [myValue,`
+3. Accept the **Why Type Twice** completion suggestion
+4. Type the initial state value inside the parens
+
+## Settings
+
+| Setting | Options | Default | Description |
+|---|---|---|---|
+| `usestateSetter.importStyle` | `React.useState` \| `useState` | `React.useState` | Controls the hook call style in the inserted snippet |
+
+**`React.useState`** — use this if your file imports React as a default import:
+```ts
+import React from 'react';
+```
+
+**`useState`** — use this if your file uses named imports:
+```ts
+import { useState } from 'react';
+```
+
+## Development
+
+```bash
+npm install
+npm run compile
+```
+
+Press `F5` in VS Code to launch the extension in a new Extension Development Host window.
 
 ## License
 
