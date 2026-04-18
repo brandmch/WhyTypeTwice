@@ -1,0 +1,41 @@
+{
+  "name": "why-type-twice",
+  "displayName": "Why Type Twice",
+  "description": "Auto-completes React useState destructuring: type `const [value,` and get `setVarName] = React.useState()` inserted automatically.",
+  "version": "0.0.1",
+  "publisher": "brandmch",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Why Type Twice",
+      "properties": {
+        "usestateSetter.importStyle": {
+          "type": "string",
+          "default": "React.useState",
+          "enum": ["React.useState", "useState"],
+          "enumDescriptions": [
+            "Use React.useState() — assumes `import React from 'react'`",
+            "Use useState() — assumes `import { useState } from 'react'`"
+          ],
+          "description": "Controls whether the auto-inserted call uses React.useState() or useState()."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}
