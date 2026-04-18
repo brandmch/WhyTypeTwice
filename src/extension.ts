@@ -1,42 +1,80 @@
 import * as vscode from 'vscode';
 
 const TRIGGER_PATTERN = /const\s+\[([a-zA-Z_$][a-zA-Z0-9_$]*)\s*,\s*$/;
-const REACT_IMPORT_RE = /import\s+(.+?)\s+from\s+['"]react['"]/g;
 
 type CallStyle = 'useState' | 'React.useState';
 
-function detectCallStyle(document: vscode.TextDocument): { callStyle: CallStyle; needsImport: boolean } {
-  const text = document.getText();
+interface ImportAnalysis {
+  callStyle: CallStyle;
+  edit?: vscode.TextEdit;
+}
+
+// Preserve character offsets by replacing comment text with spaces
+function stripComments(text: string): string {
+  return text
+    .replace(/\/\*[\s\S]*?\*\//g, m => ' '.repeat(m.length))
+    .replace(/\/\/[^\n]*/g, m => ' '.repeat(m.length));
+}
+
+function analyzeImports(document: vscode.TextDocument): ImportAnalysis {
+  const raw = document.getText();
+  const text = stripComments(raw);
+
+  // [\/s\/S]+? handles multi-line import clauses; (?!type[\s{]) skips `import type`
+  const reactImportRE = /import\s+(?!type[\s{])([\s\S]+?)\s+from\s+['"]react['"]/g;
+
   let hasNamedUseState = false;
   let hasDefaultOrNamespace = false;
+  let mergeEdit: vscode.TextEdit | undefined;
 
-  REACT_IMPORT_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
-  while ((m = REACT_IMPORT_RE.exec(text)) !== null) {
-    const clause = m[1].trim();
-    if (/\{[^}]*\buseState\b[^}]*\}/.test(clause)) {
-      hasNamedUseState = true;
-    }
-    if (/^React\b/.test(clause) || /^\*\s+as\s+React\b/.test(clause)) {
-      hasDefaultOrNamespace = true;
+  while ((m = reactImportRE.exec(text)) !== null) {
+    const clause = m[1];
+    const isNamed = clause.includes('{');
+    const hasUseState = /\{[\s\S]*\buseState\b[\s\S]*\}/.test(clause);
+    const isDefaultOrNamespace =
+      /^\s*React\b/.test(clause) || /^\s*\*\s+as\s+React\b/.test(clause);
+
+    if (hasUseState) { hasNamedUseState = true; }
+    if (isDefaultOrNamespace) { hasDefaultOrNamespace = true; }
+
+    // Named import from react but no useState — candidate to merge into
+    if (isNamed && !hasUseState && !mergeEdit) {
+      const clauseStart = m.index + m[0].indexOf(m[1]);
+      const closeBrace = clause.lastIndexOf('}');
+      if (closeBrace !== -1) {
+        const closeBraceOffset = clauseStart + closeBrace;
+        // Walk back past whitespace to check for a trailing comma
+        let i = closeBraceOffset - 1;
+        while (i >= 0 && /\s/.test(raw[i])) { i--; }
+        const sep = raw[i] === ',' ? ' ' : ', ';
+        mergeEdit = vscode.TextEdit.insert(
+          document.positionAt(closeBraceOffset),
+          `${sep}useState`
+        );
+      }
     }
   }
 
-  if (hasNamedUseState) { return { callStyle: 'useState', needsImport: false }; }
-  if (hasDefaultOrNamespace) { return { callStyle: 'React.useState', needsImport: false }; }
-  return { callStyle: 'useState', needsImport: true };
-}
+  if (hasNamedUseState) { return { callStyle: 'useState' }; }
+  if (hasDefaultOrNamespace) { return { callStyle: 'React.useState' }; }
+  if (mergeEdit) { return { callStyle: 'useState', edit: mergeEdit }; }
 
-function importInsertPosition(document: vscode.TextDocument): vscode.Position {
+  // No React import at all — add a fresh one after the last import line
   let lastImportLine = -1;
   for (let i = 0; i < document.lineCount; i++) {
     if (document.lineAt(i).text.trimStart().startsWith('import ')) {
       lastImportLine = i;
     }
   }
-  return lastImportLine === -1
+  const insertPos = lastImportLine === -1
     ? new vscode.Position(0, 0)
     : new vscode.Position(lastImportLine + 1, 0);
+
+  return {
+    callStyle: 'useState',
+    edit: vscode.TextEdit.insert(insertPos, "import { useState } from 'react';\n"),
+  };
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -66,16 +104,9 @@ export function activate(context: vscode.ExtensionContext) {
         let additionalEdits: vscode.TextEdit[] | undefined;
 
         if (importStyle === 'autoDetect') {
-          const { callStyle, needsImport } = detectCallStyle(document);
+          const { callStyle, edit } = analyzeImports(document);
           callExpr = callStyle;
-          if (needsImport) {
-            additionalEdits = [
-              vscode.TextEdit.insert(
-                importInsertPosition(document),
-                "import { useState } from 'react';\n"
-              ),
-            ];
-          }
+          if (edit) { additionalEdits = [edit]; }
         } else {
           callExpr = importStyle === 'useState' ? 'useState' : 'React.useState';
         }
