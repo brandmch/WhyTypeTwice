@@ -1,7 +1,7 @@
 {
   "name": "why-type-twice",
   "displayName": "Why Type Twice",
-  "description": "Auto-completes React useState destructuring: type `const [value,` and get `setVarName] = React.useState()` inserted automatically.",
+  "description": "Auto-completes React useState destructuring: type `const [value,` and get the setter and hook inserted automatically, matching your file's import style.",
   "version": "0.0.1",
   "publisher": "brandmch",
   "engines": {
@@ -15,24 +15,6 @@
     "onLanguage:typescriptreact"
   ],
   "main": "./out/extension.js",
-  "contributes": {
-    "configuration": {
-      "title": "Why Type Twice",
-      "properties": {
-        "usestateSetter.importStyle": {
-          "type": "string",
-          "default": "autoDetect",
-          "enum": ["autoDetect", "React.useState", "useState"],
-          "enumDescriptions": [
-            "Read the current file's imports and use the matching style; auto-adds `import { useState } from 'react'` if no React import is found",
-            "Always use React.useState() — assumes `import React from 'react'`",
-            "Always use useState() — assumes `import { useState } from 'react'`"
-          ],
-          "description": "Controls the hook call style inserted by the completion. 'autoDetect' (default) reads the file's imports."
-        }
-      }
-    }
-  },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
