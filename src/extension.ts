@@ -44,7 +44,6 @@ function analyzeImports(document: vscode.TextDocument): ImportAnalysis {
       const closeBrace = clause.lastIndexOf('}');
       if (closeBrace !== -1) {
         const closeBraceOffset = clauseStart + closeBrace;
-        // Walk back past whitespace to check for a trailing comma
         let i = closeBraceOffset - 1;
         while (i >= 0 && /\s/.test(raw[i])) { i--; }
         const sep = raw[i] === ',' ? ' ' : ', ';
@@ -97,29 +96,18 @@ export function activate(context: vscode.ExtensionContext) {
         const stateName = match[1];
         const setterName = 'set' + stateName.charAt(0).toUpperCase() + stateName.slice(1);
 
-        const config = vscode.workspace.getConfiguration('usestateSetter');
-        const importStyle = config.get<string>('importStyle', 'autoDetect');
+        const { callStyle, edit } = analyzeImports(document);
+        const additionalEdits = edit ? [edit] : undefined;
 
-        let callExpr: string;
-        let additionalEdits: vscode.TextEdit[] | undefined;
-
-        if (importStyle === 'autoDetect') {
-          const { callStyle, edit } = analyzeImports(document);
-          callExpr = callStyle;
-          if (edit) { additionalEdits = [edit]; }
-        } else {
-          callExpr = importStyle === 'useState' ? 'useState' : 'React.useState';
-        }
-
-        const snippetText = ` ${setterName}] = ${callExpr}(\${1:})`;
+        const snippetText = ` ${setterName}] = ${callStyle}(\${1:})`;
         const item = new vscode.CompletionItem(
-          ` ${setterName}] = ${callExpr}()`,
+          ` ${setterName}] = ${callStyle}()`,
           vscode.CompletionItemKind.Snippet
         );
         item.insertText = new vscode.SnippetString(snippetText);
         item.detail = 'Why Type Twice';
         item.documentation = new vscode.MarkdownString(
-          `Completes the useState destructure:\n\`\`\`\nconst [${stateName}, ${setterName}] = ${callExpr}()\n\`\`\``
+          `Completes the useState destructure:\n\`\`\`\nconst [${stateName}, ${setterName}] = ${callStyle}()\n\`\`\``
         );
         item.sortText = '0';
         item.preselect = true;
