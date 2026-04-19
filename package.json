@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "publisher": "BrandonMcHugh",
   "license": "MIT",
+  "icon": "images/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/brandmch/WhyTypeTwice.git"
