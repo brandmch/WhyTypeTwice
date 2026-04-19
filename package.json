@@ -3,7 +3,7 @@
   "displayName": "Why Type Twice",
   "description": "Auto-completes React useState destructuring. Type const [value, and get setVarName] = useState() with your cursor inside the parens.",
   "version": "0.0.1",
-  "publisher": "brandmch",
+  "publisher": "BrandonMcHugh",
   "license": "MIT",
   "repository": {
     "type": "git",
