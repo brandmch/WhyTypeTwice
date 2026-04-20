@@ -20,16 +20,31 @@ function analyzeImports(document: vscode.TextDocument): ImportAnalysis {
   const raw = document.getText();
   const text = stripComments(raw);
 
-  // [\s\S]+? handles multi-line import clauses; (?!type[\s{]) skips `import type`
-  const reactImportRE = /import\s+(?!type[\s{])([\s\S]+?)\s+from\s+['"]react['"]/g;
-
   let hasNamedUseState = false;
   let hasDefaultOrNamespace = false;
   let mergeEdit: vscode.TextEdit | undefined;
 
-  let m: RegExpExecArray | null;
-  while ((m = reactImportRE.exec(text)) !== null) {
-    const clause = m[1];
+  // Anchor to each `from 'react'` and walk back to its opening `import`.
+  // This fixes a bug where [\s\S]+? would cross statement boundaries and
+  // match the clause of an unrelated import (e.g. @mui/material) instead.
+  const fromReactRE = /\bfrom\s+['"]react['"]/g;
+  let fm: RegExpExecArray | null;
+
+  while ((fm = fromReactRE.exec(text)) !== null) {
+    const before = text.slice(0, fm.index);
+    const importIdx = before.lastIndexOf('import ');
+    if (importIdx === -1) { continue; }
+
+    // Text from `import` up to (not including) `from 'react'`
+    const clauseText = before.slice(importIdx);
+
+    // Skip type imports
+    if (/^import\s+type[\s{]/.test(clauseText)) { continue; }
+
+    const clauseMatch = /^import\s+([\s\S]+?)\s*$/.exec(clauseText);
+    if (!clauseMatch) { continue; }
+
+    const clause = clauseMatch[1];
     const isNamed = clause.includes('{');
     const hasUseState = /\{[\s\S]*\buseState\b[\s\S]*\}/.test(clause);
     const isDefaultOrNamespace =
@@ -38,12 +53,11 @@ function analyzeImports(document: vscode.TextDocument): ImportAnalysis {
     if (hasUseState) { hasNamedUseState = true; }
     if (isDefaultOrNamespace) { hasDefaultOrNamespace = true; }
 
-    // Named import from react but no useState — candidate to merge into
     if (isNamed && !hasUseState && !mergeEdit) {
-      const clauseStart = m.index + m[0].indexOf(m[1]);
+      const clauseStartInText = importIdx + clauseText.indexOf(clause);
       const closeBrace = clause.lastIndexOf('}');
       if (closeBrace !== -1) {
-        const closeBraceOffset = clauseStart + closeBrace;
+        const closeBraceOffset = clauseStartInText + closeBrace;
         let i = closeBraceOffset - 1;
         while (i >= 0 && /\s/.test(raw[i])) { i--; }
         const sep = raw[i] === ',' ? ' ' : ', ';
