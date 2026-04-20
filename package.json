@@ -2,10 +2,9 @@
   "name": "why-type-twice",
   "displayName": "Why Type Twice",
   "description": "Auto-completes React useState destructuring. Type const [value, and get setVarName] = useState() with your cursor inside the parens.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "BrandonMcHugh",
   "license": "MIT",
-  "icon": "images/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/brandmch/WhyTypeTwice.git"
