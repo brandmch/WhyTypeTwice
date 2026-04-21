@@ -49,10 +49,13 @@ export function analyzeImports(rawText: string): AnalysisResult {
       const closeBrace = clause.lastIndexOf('}');
       if (closeBrace !== -1) {
         const closeBraceOffset = clauseStartInText + closeBrace;
+        // Walk back past whitespace to find the last non-whitespace char before `}`.
+        // Insert after that char so `{ useEffect }` becomes `{ useEffect, useState }`
+        // rather than `{ useEffect , useState}` (which inserting AT `}` would produce).
         let i = closeBraceOffset - 1;
         while (i >= 0 && /\s/.test(rawText[i])) { i--; }
         const sep = rawText[i] === ',' ? ' ' : ', ';
-        mergeEdit = { offset: closeBraceOffset, text: `${sep}useState` };
+        mergeEdit = { offset: i + 1, text: `${sep}useState` };
       }
     }
   }
